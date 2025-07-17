@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blitzlesen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: white;
+      color: black;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    #wordDisplay {
+      font-size: 64px;
+      margin: 100px 0;
+      height: 100px;
+    }
+    button {
+      font-size: 16px;
+      margin: 10px;
+      padding: 10px 20px;
+    }
+    #stats {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    .duration-btns button {
+      font-size: 24px;
+      margin: 0 10px;
+    }
+    #summary {
+      display: none;
+      font-size: 24px;
+    }
+    #summary img {
+      width: 120px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blitzlesen</h1>
+
+  <div class="duration-btns">
+    <span>Anzeigezeit:</span>
+    <button onclick="setDuration(1000)">🐇</button>
+    <button onclick="setDuration(2000)">🐢</button>
+    <button onclick="setDuration(3000)">🐌</button>
+  </div>
+
+  <div id="readingView">
+    <div id="wordDisplay">Zum Start bitte hier klicken</div>
+    <div>
+      <button onclick="markCorrect()">✅ Richtig (R)</button>
+      <button onclick="markWrong()">❌ Falsch (F)</button>
+      <button onclick="repeatWord()">🔁 Wiederholen</button>
+    </div>
+    <div id="stats">0 von 0 richtig – 0 gelesen von 0</div>
+  </div>
+
+  <div id="summary">
+    <img src="https://cdn-icons-png.flaticon.com/512/2583/2583279.png" alt="Pokal">
+    <p>🎉 Fertig!</p>
+  </div>
+
+  <audio id="beep1" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b4d7974ff.mp3?filename=beep-6-96243.mp3"></audio>
+  <audio id="beep2" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b4d7974ff.mp3?filename=beep-6-96243.mp3"></audio>
+  <audio id="beep3" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b4d7974ff.mp3?filename=beep-6-96243.mp3"></audio>
+
+  <script>
+    const presetWords = `
+Katze
+Baum
+Haus
+Schule
+Tisch
+Auto
+`;
+
+    let displayDuration = 1000;
+    let words = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let totalCount = 0;
+    let showing = false;
+    let started = false;
+
+    function setDuration(ms) {
+      displayDuration = ms;
+    }
+
+    function startSession() {
+      words = presetWords.trim().split(/\n+/).map(w => w.trim()).filter(w => w);
+      words = shuffleArray(words);
+      currentIndex = -1;
+      correctCount = 0;
+      totalCount = 0;
+      updateStats();
+      document.getElementById("wordDisplay").textContent = "Bereit? Klicke zum Start.";
+    }
+
+    document.getElementById("wordDisplay").addEventListener("click", () => {
+      if (!started) {
+        started = true;
+        showReadyCountdown();
+      }
+    });
+
+    function showReadyCountdown() {
+      const display = document.getElementById("wordDisplay");
+      const beeps = [
+        document.getElementById("beep1"),
+        document.getElementById("beep2"),
+        document.getElementById("beep3")
+      ];
+      let count = 3;
+      const interval = setInterval(() => {
+        display.textContent = count;
+        if (count <= 3 && count >= 1) beeps[3 - count].play();
+        count--;
+        if (count < 1) {
+          clearInterval(interval);
+          nextWord();
+        }
+      }, 1000);
+    }
+
+    function nextWord() {
+      document.getElementById("wordDisplay").textContent = "";
+      showing = true;
+      currentIndex++;
+      if (currentIndex >= words.length) {
+        document.getElementById("readingView").style.display = "none";
+        document.getElementById("summary").style.display = "block";
+        return;
+      }
+      const word = words[currentIndex];
+      setTimeout(() => {
+        document.getElementById("wordDisplay").textContent = word;
+        setTimeout(() => {
+          document.getElementById("wordDisplay").textContent = "";
+          showing = false;
+        }, displayDuration);
+      }, 300);
+      updateStats();
+    }
+
+    function repeatWord() {
+      if (currentIndex < words.length) {
+        const word = words[currentIndex];
+        document.getElementById("wordDisplay").textContent = word;
+        showing = true;
+        setTimeout(() => {
+          document.getElementById("wordDisplay").textContent = "";
+          showing = false;
+        }, displayDuration);
+      }
+    }
+
+    function markCorrect() {
+      if (showing || currentIndex >= words.length) return;
+      correctCount++;
+      totalCount++;
+      updateStats();
+      nextWord();
+    }
+
+    function markWrong() {
+      if (showing || currentIndex >= words.length) return;
+      totalCount++;
+      updateStats();
+      nextWord();
+    }
+
+    function updateStats() {
+      const gelesen = Math.min(currentIndex + 1, words.length);
+      document.getElementById("stats").textContent = `${correctCount} von ${totalCount} richtig – ${gelesen} gelesen von ${words.length}`;
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "r" || e.key === "R") markCorrect();
+      if (e.key === "f" || e.key === "F") markWrong();
+      if (e.key === " ") repeatWord();
+    });
+
+    window.onload = startSession;
+  </script>
+</body>
+</html>
