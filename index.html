@@ -80,10 +80,9 @@
     <div id="stats">0 von 0 richtig – 0 gelesen von 0</div>
   </div>
 
-  <div id="summary">
-    <img src="https://cdn-icons-png.flaticon.com/512/2583/2583279.png" alt="Pokal">
-    <p>🎉 Fertig!</p>
-  </div>
+<div id="summary">
+  <p id="finalMessage">🎉 Fertig!</p>
+</div>
 
   <audio id="beep1" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b4d7974ff.mp3?filename=beep-6-96243.mp3"></audio>
   <audio id="beep2" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b4d7974ff.mp3?filename=beep-6-96243.mp3"></audio>
@@ -155,26 +154,27 @@ die Mondmission
       }, 1000);
     }
 
-    function nextWord() {
+function nextWord() {
+  document.getElementById("wordDisplay").textContent = "";
+  showing = true;
+  currentIndex++;
+  if (currentIndex >= words.length) {
+    document.getElementById("readingView").style.display = "none";
+    const finalMsg = `🎉 Fertig! Du hast ${correctCount} von ${totalCount} richtig gelesen.`;
+    document.getElementById("finalMessage").textContent = finalMsg;
+    document.getElementById("summary").style.display = "block";
+    return;
+  }
+  const word = words[currentIndex];
+  setTimeout(() => {
+    document.getElementById("wordDisplay").textContent = word;
+    setTimeout(() => {
       document.getElementById("wordDisplay").textContent = "";
-      showing = true;
-      currentIndex++;
-      if (currentIndex >= words.length) {
-        document.getElementById("readingView").style.display = "none";
-        document.getElementById("summary").style.display = "block";
-        return;
-      }
-      const word = words[currentIndex];
-      setTimeout(() => {
-        document.getElementById("wordDisplay").textContent = word;
-        setTimeout(() => {
-          document.getElementById("wordDisplay").textContent = "";
-          showing = false;
-        }, displayDuration);
-      }, 300);
-      updateStats();
-    }
-
+      showing = false;
+    }, displayDuration);
+  }, 300);
+  updateStats();
+}
     function repeatWord() {
       if (currentIndex < words.length) {
         const word = words[currentIndex];
