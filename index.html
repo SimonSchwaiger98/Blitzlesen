@@ -129,18 +129,25 @@ Auto
       document.getElementById("wordDisplay").textContent = "Bereit? Klicke zum Start.";
     }
 
-document.getElementById("wordDisplay").addEventListener("click", () => {
+document.getElementById("wordDisplay").addEventListener("click", async () => {
   if (!started) {
-    // Audiotrigger zum Entsperren
-    document.getElementById("beep1").play().catch(() => {});
-    document.getElementById("beep2").play().catch(() => {});
-    document.getElementById("beep3").play().catch(() => {});
+    // Versuche alle Sounds kurz abzuspielen (leise), um Autoplay-Sperren zu umgehen
+    const sounds = ["beep1", "beep2", "beep3"].map(id => document.getElementById(id));
+    for (let sound of sounds) {
+      sound.volume = 0.01;
+      try {
+        await sound.play();
+        sound.pause();
+        sound.currentTime = 0;
+      } catch (e) {
+        console.warn("Sound konnte nicht vorgespielt werden:", e);
+      }
+    }
 
     started = true;
     showReadyCountdown();
   }
 });
-
     function showReadyCountdown() {
       const display = document.getElementById("wordDisplay");
       const beeps = [
