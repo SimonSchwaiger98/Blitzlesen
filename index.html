@@ -129,12 +129,17 @@ Auto
       document.getElementById("wordDisplay").textContent = "Bereit? Klicke zum Start.";
     }
 
-    document.getElementById("wordDisplay").addEventListener("click", () => {
-      if (!started) {
-        started = true;
-        showReadyCountdown();
-      }
-    });
+document.getElementById("wordDisplay").addEventListener("click", () => {
+  if (!started) {
+    // Audiotrigger zum Entsperren
+    document.getElementById("beep1").play().catch(() => {});
+    document.getElementById("beep2").play().catch(() => {});
+    document.getElementById("beep3").play().catch(() => {});
+
+    started = true;
+    showReadyCountdown();
+  }
+});
 
     function showReadyCountdown() {
       const display = document.getElementById("wordDisplay");
